@@ -1,0 +1,15 @@
+#!/bin/sh
+# script expects 3 parameters 
+#   ip_address  miner_password   heat_mode (0=low, 1=med, 2=high)
+[ $# -ne 3 ] && echo "usage: $0 ip_address  miner_password   heat_mode" && exit 1
+
+# TODO: add argument error handling
+IP="${1}"
+MINER_PWD="${2}"
+MODE="${3}"  
+
+# Nano3 UI depends on a cookie for REST UI
+AUTH=$(echo -n "$MINER_PWD" | openssl dgst -sha256 -binary | xxd -p -c 24 | cut -c 1-24 | sed 's/^/ff0000ff/' | head -1)
+
+# REST call to trigger dynamic heat mode change.
+curl -s -X POST -H "Cookie: auth=${AUTH}" -d "mode=$MODE" http://$IP/modeconf.cgi
